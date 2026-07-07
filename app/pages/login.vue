@@ -40,8 +40,6 @@ async function onSubmit() {
       <button type="submit" :disabled="busy">
         {{ busy ? 'Bezig…' : 'Inloggen' }}
       </button>
-
-      <p class="hint">Demo: alice / bob / admin — wachtwoord <code>demo</code></p>
     </form>
   </div>
 </template>
@@ -104,16 +102,5 @@ button:disabled {
   color: #dc2626;
   font-size: 0.85rem;
   margin: 0;
-}
-.hint {
-  color: #94a3b8;
-  font-size: 0.75rem;
-  text-align: center;
-  margin: 0.5rem 0 0;
-}
-code {
-  background: #f1f5f9;
-  padding: 0 0.25rem;
-  border-radius: 3px;
 }
 </style>

@@ -21,99 +21,36 @@ async function onSubmit() {
 </script>
 
 <template>
-  <div class="page">
-    <form class="card" @submit.prevent="onSubmit">
-      <h1>RBrain</h1>
-      <p class="sub">Log in om vragen te stellen aan de kennisbank.</p>
+  <div class="min-h-screen flex items-center justify-center bg-neutral-950 p-4">
+    <UCard class="w-full max-w-sm">
+      <form class="flex flex-col gap-4" @submit.prevent="onSubmit">
+        <div>
+          <h1 class="text-2xl font-semibold">
+            RBrain
+          </h1>
+          <p class="text-muted text-sm mt-1">
+            Log in om vragen te stellen aan de kennisbank.
+          </p>
+        </div>
 
-      <label>
-        Gebruikersnaam
-        <input v-model="username" autocomplete="username" autofocus />
-      </label>
-      <label>
-        Wachtwoord
-        <input v-model="password" type="password" autocomplete="current-password" />
-      </label>
+        <UFormField label="Gebruikersnaam">
+          <UInput v-model="username" autocomplete="username" autofocus />
+        </UFormField>
 
-      <p v-if="error" class="error">{{ error }}</p>
+        <UFormField label="Wachtwoord">
+          <UInput v-model="password" type="password" autocomplete="current-password" />
+        </UFormField>
 
-      <button type="submit" :disabled="busy">
-        {{ busy ? 'Bezig…' : 'Inloggen' }}
-      </button>
+        <UAlert v-if="error" color="error" variant="subtle" :title="error" />
 
-      <p class="hint">Demo: alice / bob / admin — wachtwoord <code>demo</code></p>
-    </form>
+        <UButton type="submit" block :loading="busy">
+          Inloggen
+        </UButton>
+
+        <p class="text-muted text-xs text-center">
+          Demo: alice / bob / admin — wachtwoord <UKbd>demo</UKbd>
+        </p>
+      </form>
+    </UCard>
   </div>
 </template>
-
-<style scoped>
-.page {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  background: #0f172a;
-  font-family: system-ui, sans-serif;
-}
-.card {
-  width: 320px;
-  background: #fff;
-  padding: 2rem;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-}
-h1 {
-  margin: 0;
-  font-size: 1.5rem;
-}
-.sub {
-  margin: 0 0 0.5rem;
-  color: #64748b;
-  font-size: 0.9rem;
-}
-label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.85rem;
-  color: #334155;
-}
-input {
-  padding: 0.5rem 0.6rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 1rem;
-}
-button {
-  margin-top: 0.5rem;
-  padding: 0.6rem;
-  border: none;
-  border-radius: 6px;
-  background: #2563eb;
-  color: #fff;
-  font-size: 1rem;
-  cursor: pointer;
-}
-button:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-.error {
-  color: #dc2626;
-  font-size: 0.85rem;
-  margin: 0;
-}
-.hint {
-  color: #94a3b8;
-  font-size: 0.75rem;
-  text-align: center;
-  margin: 0.5rem 0 0;
-}
-code {
-  background: #f1f5f9;
-  padding: 0 0.25rem;
-  border-radius: 3px;
-}
-</style>

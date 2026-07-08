@@ -3,6 +3,13 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-01',
   devtools: { enabled: false },
 
+  modules: ['@nuxt/ui'],
+  css: ['~/assets/css/main.css'],
+
+  colorMode: {
+    preference: 'light',
+  },
+
   // Server-only config. Values are read from .env at startup.
   // NB: these are NOT exposed to the client (not under `public`).
   runtimeConfig: {

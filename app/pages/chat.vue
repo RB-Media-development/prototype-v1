@@ -1,15 +1,6 @@
 <script setup lang="ts">
-interface Source {
-  ref: number
-  box: string
-  filename: string
-  excerpt: string
-}
-interface Turn {
-  question: string
-  answer: string
-  sources: Source[]
-}
+import type { Turn } from '~/utils/chatMessages'
+import { turnsToMessages } from '~/utils/chatMessages'
 
 const { user, logout } = useAuth()
 
@@ -25,7 +16,7 @@ async function ask() {
   busy.value = true
   question.value = ''
   try {
-    const res = await $fetch<{ answer: string; sources: Source[] }>('/api/chat', {
+    const res = await $fetch<{ answer: string; sources: Turn['sources'] }>('/api/chat', {
       method: 'POST',
       body: { question: q },
     })
@@ -45,161 +36,64 @@ async function onLogout() {
 </script>
 
 <template>
-  <div class="shell">
-    <header>
-      <div>
+  <div class="max-w-3xl mx-auto min-h-screen flex flex-col">
+    <header class="flex justify-between items-center px-4 py-3 border-b border-default">
+      <div class="flex items-center gap-2 flex-wrap">
         <strong>RBrain</strong>
-        <span class="boxes">
-          toegang: {{ user?.boxes.join(', ') || 'geen' }}
+        <UBadge
+          v-for="box in user?.boxes ?? []"
+          :key="box"
+          color="primary"
+          variant="subtle"
+          size="sm"
+        >
+          {{ box }}
+        </UBadge>
+        <span v-if="!user?.boxes.length" class="text-muted text-xs">
+          geen toegang
         </span>
       </div>
-      <div class="user">
+      <div class="flex items-center gap-2 text-sm shrink-0">
         <span>{{ user?.username }}</span>
-        <button class="link" @click="onLogout">Uitloggen</button>
+        <UButton variant="link" @click="onLogout">
+          Uitloggen
+        </UButton>
       </div>
     </header>
 
-    <main>
-      <p v-if="!turns.length" class="empty">
+    <main class="flex-1 p-4 flex flex-col gap-4">
+      <p v-if="!turns.length" class="text-muted text-center mt-12">
         Stel een vraag over je kennisbanken.
       </p>
 
-      <div v-for="(turn, i) in turns" :key="i" class="turn">
-        <div class="q">{{ turn.question }}</div>
-        <div class="a">
-          <p class="answer">{{ turn.answer }}</p>
-          <SourceList :sources="turn.sources" />
-        </div>
-      </div>
+      <UChatMessages
+        v-if="turns.length"
+        :messages="turnsToMessages(turns)"
+        :status="busy ? 'submitted' : undefined"
+      >
+        <template #content="{ message }">
+          <p class="whitespace-pre-wrap">
+            {{ message.parts[0]?.text }}
+          </p>
+          <SourceList
+            v-if="message.role === 'assistant'"
+            :sources="message.metadata?.sources ?? []"
+          />
+        </template>
+      </UChatMessages>
 
-      <p v-if="busy" class="thinking">RBrain denkt na…</p>
-      <p v-if="error" class="error">{{ error }}</p>
+      <UAlert v-if="error" color="error" :title="error" />
     </main>
 
-    <footer>
-      <form @submit.prevent="ask">
-        <textarea
-          v-model="question"
-          placeholder="Typ je vraag… (Enter = versturen)"
-          rows="2"
-          :disabled="busy"
-          @keydown.enter.exact.prevent="ask"
-        />
-        <button type="submit" :disabled="busy || !question.trim()">Verstuur</button>
-      </form>
+    <footer class="sticky bottom-0 border-t border-default bg-default p-3">
+      <UChatPrompt
+        v-model="question"
+        placeholder="Typ je vraag… (Enter = versturen)"
+        :disabled="busy"
+        @submit="ask"
+      >
+        <UChatPromptSubmit :disabled="busy || !question.trim()" />
+      </UChatPrompt>
     </footer>
   </div>
 </template>
-
-<style scoped>
-.shell {
-  max-width: 760px;
-  margin: 0 auto;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  font-family: system-ui, sans-serif;
-  color: #0f172a;
-}
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.9rem 1rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-.boxes {
-  margin-left: 0.6rem;
-  font-size: 0.75rem;
-  color: #94a3b8;
-}
-.user {
-  display: flex;
-  gap: 0.6rem;
-  align-items: center;
-  font-size: 0.85rem;
-}
-.link {
-  background: none;
-  border: none;
-  color: #2563eb;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-main {
-  flex: 1;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-.empty {
-  color: #94a3b8;
-  text-align: center;
-  margin-top: 3rem;
-}
-.turn {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.q {
-  align-self: flex-end;
-  background: #2563eb;
-  color: #fff;
-  padding: 0.5rem 0.8rem;
-  border-radius: 12px 12px 2px 12px;
-  max-width: 80%;
-}
-.a {
-  align-self: flex-start;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  padding: 0.7rem 0.9rem;
-  border-radius: 12px 12px 12px 2px;
-  max-width: 90%;
-}
-.answer {
-  margin: 0;
-  white-space: pre-wrap;
-  line-height: 1.5;
-}
-.thinking {
-  color: #94a3b8;
-  font-style: italic;
-}
-.error {
-  color: #dc2626;
-}
-footer {
-  border-top: 1px solid #e2e8f0;
-  padding: 0.75rem 1rem;
-  position: sticky;
-  bottom: 0;
-  background: #fff;
-}
-form {
-  display: flex;
-  gap: 0.5rem;
-}
-textarea {
-  flex: 1;
-  resize: none;
-  padding: 0.5rem 0.6rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font: inherit;
-}
-button[type='submit'] {
-  padding: 0 1.1rem;
-  border: none;
-  border-radius: 8px;
-  background: #2563eb;
-  color: #fff;
-  cursor: pointer;
-}
-button:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-</style>

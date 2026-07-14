@@ -3,6 +3,18 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-01',
   devtools: { enabled: false },
 
+  vite: {
+    server: {
+      hmr: process.env.NUXT_VITE_HMR_HOST
+        ? {
+            protocol: 'ws',
+            host: process.env.NUXT_VITE_HMR_HOST,
+            clientPort: Number(process.env.NUXT_VITE_HMR_CLIENT_PORT || 80),
+          }
+        : undefined,
+    },
+  },
+
   // Server-only config. Values are read from .env at startup.
   // NB: these are NOT exposed to the client (not under `public`).
   runtimeConfig: {

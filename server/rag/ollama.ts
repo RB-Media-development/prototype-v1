@@ -28,12 +28,14 @@ export async function embed(text: string): Promise<number[]> {
 
 export async function chatCompletion(messages: ChatMessage[]): Promise<string> {
   const config = useRuntimeConfig()
+  console.log(config.ollamaBaseUrl)
   const res = await $fetch<ChatResponse>(`${config.ollamaBaseUrl}/chat/completions`, {
     method: 'POST',
     body: {
       model: config.ollamaChatModel,
       messages,
       temperature: 0.1,
+      "stream": false
     },
   })
   const content = res?.choices?.[0]?.message?.content
